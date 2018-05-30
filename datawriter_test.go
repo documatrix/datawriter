@@ -126,11 +126,11 @@ func TestWriteTime(t *testing.T) {
 		2,
 		0,
 		loc,
-	))
+	), time.Time{})
 	require.Nil(t, err)
 	err = w.Flush()
 	require.Nil(t, err)
-	require.Equal(t, "\"2018-05-30 12:01:02\"\n", buf.String())
+	require.Equal(t, "\"2018-05-30 12:01:02\",\"0000-00-00 00:00:00\"\n", buf.String())
 }
 
 func TestWriteInvalidType(t *testing.T) {
