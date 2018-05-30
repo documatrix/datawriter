@@ -154,6 +154,8 @@ func (w *Writer) writeByte(b byte) error {
 		_, err = w.w.WriteString("\\t")
 	case '\x1a':
 		_, err = w.w.WriteString("\\Z")
+	case '"':
+		_, err = w.w.WriteString("\\\"")
 	default:
 		err = w.w.WriteByte(b)
 	}

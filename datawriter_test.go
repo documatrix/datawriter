@@ -20,11 +20,11 @@ func create(t *testing.T) (*datawriter.Writer, *bytes.Buffer) {
 func TestWriterString(t *testing.T) {
 	w, buf := create(t)
 
-	err := w.Write("hallo", "\\\n\r\t\x1A")
+	err := w.Write("hallo", "\"", "\\\n\r\t\x1A")
 	require.Nil(t, err)
 	err = w.Flush()
 	require.Nil(t, err)
-	require.Equal(t, "\"hallo\",\"\\b\\n\\r\\t\\Z\"\n", buf.String())
+	require.Equal(t, "\"hallo\",\"\\\"\",\"\\b\\n\\r\\t\\Z\"\n", buf.String())
 }
 
 func TestWriterInt(t *testing.T) {
