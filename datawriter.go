@@ -144,7 +144,7 @@ func (w *Writer) writeByte(b byte) error {
 	switch b {
 	case '\x00':
 		_, err = w.w.WriteString("\\0")
-	case '\\':
+	case '\x08':
 		_, err = w.w.WriteString("\\b")
 	case '\x0a':
 		_, err = w.w.WriteString("\\n")
@@ -156,6 +156,8 @@ func (w *Writer) writeByte(b byte) error {
 		_, err = w.w.WriteString("\\Z")
 	case '"':
 		_, err = w.w.WriteString("\\\"")
+	case '\\':
+		_, err = w.w.WriteString("\\\\")
 	default:
 		err = w.w.WriteByte(b)
 	}

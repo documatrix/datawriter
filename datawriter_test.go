@@ -20,11 +20,11 @@ func create(t *testing.T) (*datawriter.Writer, *bytes.Buffer) {
 func TestWriterString(t *testing.T) {
 	w, buf := create(t)
 
-	err := w.Write("hallo", "\"", "\\\n\r\t\x1A")
+	err := w.Write("hallo", "\"", "\\\n\r\t\x08\x1A")
 	require.Nil(t, err)
 	err = w.Flush()
 	require.Nil(t, err)
-	require.Equal(t, "\"hallo\",\"\\\"\",\"\\b\\n\\r\\t\\Z\"\n", buf.String())
+	require.Equal(t, "\"hallo\",\"\\\"\",\"\\\\\\n\\r\\t\\b\\Z\"\n", buf.String())
 }
 
 func TestWriterInt(t *testing.T) {
@@ -99,7 +99,7 @@ func TestWriteByteArray(t *testing.T) {
 	require.Nil(t, err)
 	err = w.Flush()
 	require.Nil(t, err)
-	require.Equal(t, "\"\\0\x01\x02\x03\x04\x05\x06\x07\x08\\t\\n\x0b\x0c\\r\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\\Z\x1B\x1C\x1D\x1E\x1F\"\n", buf.String())
+	require.Equal(t, "\"\\0\x01\x02\x03\x04\x05\x06\x07\\b\\t\\n\x0b\x0c\\r\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\\Z\x1B\x1C\x1D\x1E\x1F\"\n", buf.String())
 }
 
 func TestWriteFloat(t *testing.T) {
