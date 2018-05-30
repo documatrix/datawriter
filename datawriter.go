@@ -6,6 +6,7 @@ import (
 	"io"
 	"reflect"
 	"strconv"
+	"time"
 )
 
 // Writer can be used to write some data in a CSV file, which can be loaded
@@ -106,8 +107,10 @@ func (w *Writer) Write(fields ...interface{}) error {
 					}
 				}
 
+			} else if t, ok := field.(time.Time); ok {
+				_, err = w.w.WriteString(fmt.Sprintf("%04d-%02d-%02d %02d:%02d:%02d", t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second()))
 			} else {
-				return fmt.Errorf("Error printing data %+v! It has an unsupported type %s", field, k.String())
+				return fmt.Errorf("Error printing data %+v! It has an unsupported type %s %s", field, k.String(), v.Type().String())
 			}
 
 			if err != nil {

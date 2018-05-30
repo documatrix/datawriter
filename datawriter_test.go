@@ -3,6 +3,7 @@ package datawriter_test
 import (
 	"bytes"
 	"testing"
+	"time"
 
 	"github.com/documatrix/datawriter"
 	"github.com/stretchr/testify/require"
@@ -109,6 +110,27 @@ func TestWriteFloat(t *testing.T) {
 	err = w.Flush()
 	require.Nil(t, err)
 	require.Equal(t, "\"1\",\"2.5\"\n", buf.String())
+}
+
+func TestWriteTime(t *testing.T) {
+	w, buf := create(t)
+
+	loc, err := time.LoadLocation("UTC")
+	require.Nil(t, err)
+	err = w.Write(time.Date(
+		2018,
+		5,
+		30,
+		12,
+		1,
+		2,
+		0,
+		loc,
+	))
+	require.Nil(t, err)
+	err = w.Flush()
+	require.Nil(t, err)
+	require.Equal(t, "\"2018-05-30 12:01:02\"\n", buf.String())
 }
 
 func TestWriteInvalidType(t *testing.T) {
