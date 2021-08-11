@@ -12,19 +12,21 @@ import (
 // Writer can be used to write some data in a CSV file, which can be loaded
 // by MySQL using LOAD DATA INFILE
 type Writer struct {
-	w       *bufio.Writer
-	Delim   rune
-	Quote   rune
-	LineEnd string
+	w        *bufio.Writer
+	Delim    rune
+	Quote    rune
+	LineEnd  string
+	NilValue string
 }
 
 // NewWriter returns a new writer, which will write to the given io.Writer.
 func NewWriter(w io.Writer) *Writer {
 	return &Writer{
-		w:       bufio.NewWriter(w),
-		Delim:   ',',
-		Quote:   '"',
-		LineEnd: "\n",
+		w:        bufio.NewWriter(w),
+		Delim:    ',',
+		Quote:    '"',
+		LineEnd:  "\n",
+		NilValue: "\\N",
 	}
 }
 
@@ -38,7 +40,7 @@ func (w *Writer) Write(fields ...interface{}) error {
 		}
 
 		if field == nil {
-			w.w.WriteString("\\N")
+			w.w.WriteString(w.NilValue)
 			continue
 		}
 
@@ -46,7 +48,7 @@ func (w *Writer) Write(fields ...interface{}) error {
 
 		k := v.Kind()
 		if k == reflect.Ptr && v.IsNil() {
-			w.w.WriteString("\\N")
+			w.w.WriteString(w.NilValue)
 		} else {
 			if k == reflect.Ptr {
 				v = reflect.Indirect(v)

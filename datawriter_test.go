@@ -1,18 +1,17 @@
-package datawriter_test
+package datawriter
 
 import (
 	"bytes"
 	"testing"
 	"time"
 
-	"github.com/documatrix/datawriter"
 	"github.com/stretchr/testify/require"
 )
 
-func create(t *testing.T) (*datawriter.Writer, *bytes.Buffer) {
+func create(t *testing.T) (*Writer, *bytes.Buffer) {
 	byteBuf := []byte{}
 	buf := bytes.NewBuffer(byteBuf)
-	w := datawriter.NewWriter(buf)
+	w := NewWriter(buf)
 
 	return w, buf
 }
@@ -148,4 +147,22 @@ func TestNil(t *testing.T) {
 	err = w.Flush()
 	require.Nil(t, err)
 	require.Equal(t, "\\N\n", buf.String())
+}
+
+func TestCustomNil(t *testing.T) {
+	w, buf := create(t)
+
+	err := w.Write(nil)
+	require.Nil(t, err)
+	err = w.Flush()
+	require.Nil(t, err)
+	require.Equal(t, "\\N\n", buf.String())
+
+	w.NilValue = "\\customNil"
+
+	err = w.Write(nil)
+	require.Nil(t, err)
+	err = w.Flush()
+	require.Nil(t, err)
+	require.Equal(t, "\\N\n\\customNil\n", buf.String())
 }
