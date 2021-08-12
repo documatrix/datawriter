@@ -17,6 +17,7 @@ type Writer struct {
 	Quote    rune
 	LineEnd  string
 	NilValue string
+	SQL      bool
 }
 
 // NewWriter returns a new writer, which will write to the given io.Writer.
@@ -27,6 +28,7 @@ func NewWriter(w io.Writer) *Writer {
 		Quote:    '"',
 		LineEnd:  "\n",
 		NilValue: "\\N",
+		SQL:      false,
 	}
 }
 
@@ -111,8 +113,10 @@ func (w *Writer) Write(fields ...interface{}) error {
 
 			} else if t, ok := field.(time.Time); ok {
 				if t.IsZero() {
-					// The Go zero date and the MySQL zero date differ. And MySQL has some problems with the Go zero date...
-					_, err = w.w.WriteString("0000-00-00 00:00:00")
+					if !w.SQL {
+						// The Go zero date and the MySQL zero date differ. And MySQL has some problems with the Go zero date...
+						_, err = w.w.WriteString("0000-00-00 00:00:00")
+					}
 				} else {
 					_, err = w.w.WriteString(fmt.Sprintf("%04d-%02d-%02d %02d:%02d:%02d", t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second()))
 				}
