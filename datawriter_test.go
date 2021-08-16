@@ -213,3 +213,23 @@ func TestWriteHex(t *testing.T) {
 
 	require.Equal(t, data, hexBytes)
 }
+
+func TestEscaping(t *testing.T) {
+	w, buf := create(t)
+
+	err := w.Write("{\"code\":\"\\nvar ifh = io.open( \\\"INPUT_DATA.txt\\\", \\\"r\\\" );\\nvar content = \\\"\\\";\\nio.seek( ifh, 0, 0 );\\nwhile ( line = io.readLine( ifh ) ) {\\n\\tcontent = content + line;\\n}\\n\\nvar config = eval( '(' + content + ')' );\\ninfo('Running input JS code');\\neval( config.code );\\n\"}")
+	require.Nil(t, err)
+	err = w.Flush()
+	require.Nil(t, err)
+	require.Equal(t, "\"{\\\"code\\\":\\\"\\\\nvar ifh = io.open( \\\\\\\"INPUT_DATA.txt\\\\\\\", \\\\\\\"r\\\\\\\" );\\\\nvar content = \\\\\\\"\\\\\\\";\\\\nio.seek( ifh, 0, 0 );\\\\nwhile ( line = io.readLine( ifh ) ) {\\\\n\\\\tcontent = content + line;\\\\n}\\\\n\\\\nvar config = eval( '(' + content + ')' );\\\\ninfo('Running input JS code');\\\\neval( config.code );\\\\n\\\"}\"\n", buf.String())
+
+	// retry with sql logic
+	w, buf = create(t)
+	w.SQL = true
+
+	err = w.Write("{\"code\":\"\\nvar ifh = io.open( \\\"INPUT_DATA.txt\\\", \\\"r\\\" );\\nvar content = \\\"\\\";\\nio.seek( ifh, 0, 0 );\\nwhile ( line = io.readLine( ifh ) ) {\\n\\tcontent = content + line;\\n}\\n\\nvar config = eval( '(' + content + ')' );\\ninfo('Running input JS code');\\neval( config.code );\\n\"}")
+	require.Nil(t, err)
+	err = w.Flush()
+	require.Nil(t, err)
+	require.Equal(t, "\"{\"code\":\"\\nvar ifh = io.open( \\\"INPUT_DATA.txt\\\", \\\"r\\\" );\\nvar content = \\\"\\\";\\nio.seek( ifh, 0, 0 );\\nwhile ( line = io.readLine( ifh ) ) {\\n\\tcontent = content + line;\\n}\\n\\nvar config = eval( '(' + content + ')' );\\ninfo('Running input JS code');\\neval( config.code );\\n\"}\"\n", buf.String())
+}
