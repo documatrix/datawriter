@@ -2,6 +2,7 @@ package datawriter
 
 import (
 	"bufio"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"reflect"
@@ -65,10 +66,14 @@ func (w *Writer) Write(fields ...interface{}) error {
 
 			if k == reflect.String {
 				s := field.(string)
-				for i := 0; i < len(s); i++ {
-					err = w.writeByte(s[i])
-					if err != nil {
-						return fmt.Errorf("Error while writing %s to output file! %s", s, err)
+				if w.SQL {
+					w.w.WriteString(s)
+				} else {
+					for i := 0; i < len(s); i++ {
+						err = w.writeByte(s[i])
+						if err != nil {
+							return fmt.Errorf("Error while writing %s to output file! %s", s, err)
+						}
 					}
 				}
 
@@ -103,11 +108,21 @@ func (w *Writer) Write(fields ...interface{}) error {
 			} else if k == reflect.Float64 {
 				_, err = w.w.WriteString(strconv.FormatFloat(field.(float64), 'f', -1, 64))
 			} else if k == reflect.Slice && v.Type().Elem().Kind() == reflect.Uint8 {
+
 				bytes := field.([]byte)
-				for i := 0; i < len(bytes); i++ {
-					err = w.writeByte(bytes[i])
+				if w.SQL {
+					// column types varbinary supports only hex values
+					hexValue := convertToHex(bytes)
+					_, err = w.w.WriteString(hexValue)
 					if err != nil {
-						return fmt.Errorf("Error while writing %+v to output file! %s", bytes, err)
+						return fmt.Errorf("Error while writing hex value: %+v to output file! %s", hexValue, err)
+					}
+				} else {
+					for i := 0; i < len(bytes); i++ {
+						err = w.writeByte(bytes[i])
+						if err != nil {
+							return fmt.Errorf("Error while writing %+v to output file! %s", bytes, err)
+						}
 					}
 				}
 
@@ -138,6 +153,11 @@ func (w *Writer) Write(fields ...interface{}) error {
 	w.w.WriteString(w.LineEnd)
 
 	return nil
+}
+
+// convertToHex will convert a byte array to a hex value
+func convertToHex(str []byte) string {
+	return hex.EncodeToString(str)
 }
 
 // Flush will call Flush on the underlying writer.
