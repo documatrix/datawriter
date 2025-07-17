@@ -38,7 +38,9 @@ func (w *Writer) Write(fields ...interface{}) error {
 		}
 
 		if field == nil {
-			w.w.WriteString("\\N")
+			if _, err := w.w.WriteString("\\N"); err != nil {
+				return err
+			}
 			continue
 		}
 
@@ -46,7 +48,9 @@ func (w *Writer) Write(fields ...interface{}) error {
 
 		k := v.Kind()
 		if k == reflect.Ptr && v.IsNil() {
-			w.w.WriteString("\\N")
+			if _, err := w.w.WriteString("\\N"); err != nil {
+				return err
+			}
 		} else {
 			if k == reflect.Ptr {
 				v = reflect.Indirect(v)
@@ -74,30 +78,12 @@ func (w *Writer) Write(fields ...interface{}) error {
 				} else {
 					_, err = w.w.WriteString("0")
 				}
-			} else if k == reflect.Int {
-				_, err = w.w.WriteString(strconv.Itoa(field.(int)))
-			} else if k == reflect.Int8 {
-				_, err = w.w.WriteString(strconv.Itoa(int(field.(int8))))
-			} else if k == reflect.Int16 {
-				_, err = w.w.WriteString(strconv.Itoa(int(field.(int16))))
-			} else if k == reflect.Int32 {
-				_, err = w.w.WriteString(strconv.Itoa(int(field.(int32))))
-			} else if k == reflect.Int64 {
-				_, err = w.w.WriteString(strconv.FormatInt(field.(int64), 10))
-			} else if k == reflect.Uint {
-				_, err = w.w.WriteString(strconv.FormatUint(uint64(field.(uint)), 10))
-			} else if k == reflect.Uint8 {
-				_, err = w.w.WriteString(strconv.FormatUint(uint64(field.(uint8)), 10))
-			} else if k == reflect.Uint16 {
-				_, err = w.w.WriteString(strconv.FormatUint(uint64(field.(uint16)), 10))
-			} else if k == reflect.Uint32 {
-				_, err = w.w.WriteString(strconv.FormatUint(uint64(field.(uint32)), 10))
-			} else if k == reflect.Uint64 {
-				_, err = w.w.WriteString(strconv.FormatUint(field.(uint64), 10))
-			} else if k == reflect.Float32 {
-				_, err = w.w.WriteString(strconv.FormatFloat(float64(field.(float32)), 'f', -1, 64))
-			} else if k == reflect.Float64 {
-				_, err = w.w.WriteString(strconv.FormatFloat(field.(float64), 'f', -1, 64))
+			} else if k == reflect.Int || k == reflect.Int8 || k == reflect.Int16 || k == reflect.Int32 || k == reflect.Int64 {
+				_, err = w.w.WriteString(strconv.FormatInt(v.Int(), 10))
+			} else if k == reflect.Uint || k == reflect.Uint8 || k == reflect.Uint16 || k == reflect.Uint32 || k == reflect.Uint64 {
+				_, err = w.w.WriteString(strconv.FormatUint(uint64(v.Uint()), 10))
+			} else if k == reflect.Float32 || k == reflect.Float64 {
+				_, err = w.w.WriteString(strconv.FormatFloat(v.Float(), 'f', -1, 64))
 			} else if k == reflect.Slice && v.Type().Elem().Kind() == reflect.Uint8 {
 				bytes := field.([]byte)
 				for i := 0; i < len(bytes); i++ {
@@ -129,7 +115,9 @@ func (w *Writer) Write(fields ...interface{}) error {
 		}
 	}
 
-	w.w.WriteString(w.LineEnd)
+	if _, err := w.w.WriteString(w.LineEnd); err != nil {
+		return err
+	}
 
 	return nil
 }

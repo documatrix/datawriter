@@ -149,3 +149,37 @@ func TestNil(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, "\\N\n", buf.String())
 }
+
+func TestWriterCustomNumericTypes(t *testing.T) {
+	w, buf := create(t)
+
+	type DataTypeInt int
+	type DataTypeInt8 int8
+	type DataTypeInt16 int16
+	type DataTypeInt32 int32
+	type DataTypeInt64 int64
+	type DataType uint
+	type DataTypeUint8 uint8
+	type DataTypeUint16 uint16
+	type DataTypeUint32 uint32
+	type DataTypeUint64 uint64
+	type DataTypeFloat32 float32
+	type DataTypeFloat64 float64
+
+	dataTypePtr := DataType(20)
+
+	err := w.Write(
+		DataTypeInt(1), DataTypeInt8(2), DataTypeInt16(3), DataTypeInt32(4), DataTypeInt64(5),
+		DataType(6), DataTypeUint8(7), DataTypeUint16(8), DataTypeUint32(9), DataTypeUint64(10),
+		DataTypeFloat32(11), DataTypeFloat64(12.2), &dataTypePtr,
+	)
+	require.Nil(t, err)
+	err = w.Flush()
+	require.Nil(t, err)
+	require.Equal(t,
+		"\"1\",\"2\",\"3\",\"4\",\"5\","+
+			"\"6\",\"7\",\"8\",\"9\",\"10\","+
+			"\"11\",\"12.2\",\"20\"\n",
+		buf.String(),
+	)
+}
